@@ -70,8 +70,8 @@ function getAverage(value) {
 
 
 const people = {
-    "Maksim": ["Drama", "Comedy"],
-    "Viktorija": ["Drama", "Music"]
+    "Maksim": ["Comedy", "Supernatural", "Mystery", "Science-Fiction", "Action", "Fantasy", "Adventure", "Anime", "DIY"],
+    "Viktorija": ["Comedy", "Adventure", "Food", "Drama", "Action"]
 }
 
 /* Output:
@@ -92,7 +92,6 @@ function getDaysFor(people, shows) {
     Object.keys(people).forEach(person => {
         const personsgenres = people[person];
         let genreMap = new Map();
-        // let genreMap = {};
         personsgenres.forEach(genre => {
             let goodDays = new Set();
             let badDays = new Set();
@@ -107,8 +106,9 @@ function getDaysFor(people, shows) {
                 });
             }
             genreMap.set(genre, {
-                goodDays: goodDays,//JSON.stringify(Array.from(goodDays)),
-                badDays: badDays,//JSON.stringify(Array.from(badDays)),
+                // uncomment to see days
+                goodDays: goodDays, //JSON.stringify(Array.from(goodDays)),
+                badDays: badDays, //JSON.stringify(Array.from(badDays)),
             })
         });
         output.set(person, genreMap);
@@ -194,7 +194,6 @@ function getShowsByGenreAndDay(shows) {
 */
 function mostPeopleNearTV(peopleDays) {
     const daysPeople = peopleDuringTheDays(peopleDays);
-    console.log(daysPeople)
     const mostPopularDay = getMostPopularDay(daysPeople);
     return mostPopularDay;
 }
@@ -303,15 +302,14 @@ function sortByRating(genresWithRatings) {
 
 dataGetter().then(shows => {
     const daysWithRatings = getDaysWithRatings(shows);
-    console.log("daysWithRatings: ", daysWithRatings)
-    console.log("daysWithAverageRating: ", calculateAverageRatings(daysWithRatings));
+    console.log("Days with average film ratings: ", calculateAverageRatings(daysWithRatings));
 
     const bestDaysForEachPerson = getDaysFor(people, shows);
-    console.log("bestDaysForEachPerson: ", bestDaysForEachPerson);
-    console.log("people on TV at: ", mostPeopleNearTV(bestDaysForEachPerson));
+    console.log("Best day to watch TV for each person: ", bestDaysForEachPerson);
+    console.log("Most people should be watching TV on: ", mostPeopleNearTV(bestDaysForEachPerson));
 
     const genresWithRatings = getGenresWithRatings(shows);
-    console.log("genresSortedByRating", sortByRating(genresWithRatings));
+    console.log("Genres sorted by rating", sortByRating(genresWithRatings));
     const genresSortedByRating = sortByRating(genresWithRatings)
     console.log("5 categories with worst ratings: ", genresSortedByRating.slice(0,5))
     console.log("5 categories with best ratings: ", genresSortedByRating.slice(-5))
