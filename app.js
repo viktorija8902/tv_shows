@@ -16,23 +16,24 @@ async function dataGetter() {
 }
 
 
-/* Outut:
+/* 
+Input:
+    Map {
+        'Thursday' => [ 6.5, 7.8 ],
+        ....
+    }
+Ouput:
     Map {
         'Thursday' => 7.375000000000009,
         'Tuesday' => 7.370083682008374,
-        'Friday' => 7.345962732919264,
-        'Monday' => 7.3814254859611275,
-        'Sunday' => 7.664818355640547,
-        'Wednesday' => 7.3611909650924074,
-        'Saturday' => 7.6586046511627845 
     }
  */  
-function getDaysWithAverageRating(daysWithRatings) {
-    let daysWithAverageRating = new Map();
-    daysWithRatings.forEach((ratings, day) => {
-        daysWithAverageRating.set(day, getAverage(ratings));
+function calculateAverageRatings(mapWithRatings) {
+    let mapWithAverageRating = new Map();
+    mapWithRatings.forEach((ratings, day) => {
+        mapWithAverageRating.set(day, getAverage(ratings));
     });
-    return daysWithAverageRating;
+    return mapWithAverageRating;
 }
 
 /*Output:
@@ -263,10 +264,55 @@ function getMostPopularDay(daysPeople) {
     return output.bestDayInfo.day;
 }
 
+function getGenresWithRatings(shows) {
+    let output = new Map();
+    shows.forEach(show => {
+        const rating = show.rating.average;
+        if (rating !== null) {
+            const genres = show.genres;
+            genres.forEach(genre => {
+                let ratings = output.get(genre);
+                if (ratings) {
+                    output.set(genre, ratings.concat(rating));
+                } else {
+                    output.set(genre, [rating]);
+                }
+            })
+        }
+    })
+    return calculateAverageRatings(output);
+}
+
+/*
+Input:
+    Map {
+        'Drama' => 7.941515151515148,
+        'Science-Fiction' => 7.873333333333331
+    }
+Ouput:
+    [
+        [genre, rating],
+        ...
+    ]
+*/
+function sortByRating(genresWithRatings) {
+    return Array.from(genresWithRatings).sort((a, b) => {
+        return a[1] - b[1];
+    });
+}
 
 dataGetter().then(shows => {
-    console.log("daysWithAverageRating: ", getDaysWithAverageRating(getDaysWithRatings(shows)));
+    const daysWithRatings = getDaysWithRatings(shows);
+    console.log("daysWithRatings: ", daysWithRatings)
+    console.log("daysWithAverageRating: ", calculateAverageRatings(daysWithRatings));
+
     const bestDaysForEachPerson = getDaysFor(people, shows);
     console.log("bestDaysForEachPerson: ", bestDaysForEachPerson);
-    console.log("people on TV at: ", mostPeopleNearTV(bestDaysForEachPerson))
+    console.log("people on TV at: ", mostPeopleNearTV(bestDaysForEachPerson));
+
+    const genresWithRatings = getGenresWithRatings(shows);
+    console.log("genresSortedByRating", sortByRating(genresWithRatings));
+    const genresSortedByRating = sortByRating(genresWithRatings)
+    console.log("5 categories with worst ratings: ", genresSortedByRating.slice(0,5))
+    console.log("5 categories with best ratings: ", genresSortedByRating.slice(-5))
 });
