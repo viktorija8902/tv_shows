@@ -15,6 +15,32 @@ async function dataGetter() {
     return allData;
 }
 
+
+/* Outut:
+    Map {
+        'Thursday' => 7.375000000000009,
+        'Tuesday' => 7.370083682008374,
+        'Friday' => 7.345962732919264,
+        'Monday' => 7.3814254859611275,
+        'Sunday' => 7.664818355640547,
+        'Wednesday' => 7.3611909650924074,
+        'Saturday' => 7.6586046511627845 
+    }
+ */  
+function getDaysWithAverageRating(daysWithRatings) {
+    let daysWithAverageRating = new Map();
+    daysWithRatings.forEach((ratings, day) => {
+        daysWithAverageRating.set(day, getAverage(ratings));
+    });
+    return daysWithAverageRating;
+}
+
+/*Output:
+    Map {
+        day: [ratings],
+        ...: [...]
+    }
+*/
 function getDaysWithRatings(shows) {
     let daysWithRatings = new Map();
     for (let i = 0; i < shows.length; i++) {
@@ -40,26 +66,85 @@ function getAverage(value) {
     return averageRating;
 }
 
-function getDaysWithAverageRating(daysWithRatings) {
-    let daysWithAverageRating = new Map();
-    daysWithRatings.forEach((value, key) => {
-        daysWithAverageRating.set(key, getAverage(value));
-    });
-    return daysWithAverageRating;
-}
 
-var people = {
+
+const people = {
     "Maksim": ["Drama", "Comedy"],
     "Viktorija": ["Drama", "Music"]
 }
 
-// {
-//     drama: {
-//         date:  {
-//             rating: 9
-//         }
-//     }
-// }
+/* Output:
+    Map {
+        'Maksim' => Map {
+        'Drama' => { goodDays: [Set], badDays: Set {} },
+        'Comedy' => { goodDays: [Set], badDays: Set {} } },
+        'Viktorija' => Map {
+        'Drama' => { goodDays: [Set], badDays: Set {} },
+        'Music' => { goodDays: Set {}, badDays: [Set] } } 
+    }
+*/
+function getDaysFor(people, shows) {
+    const output = new Map();
+    const showsByGenreAndDay = getAveragesbyGendre(getShowsByGenreAndDay(shows));
+    Object.keys(people).forEach(person => {
+        const personsgenres = people[person];
+        let genreMap = new Map();
+        // let genreMap = {};
+        personsgenres.forEach(genre => {
+            let goodDays = new Set();
+            let badDays = new Set();
+            const allDays = showsByGenreAndDay.get(genre)
+            if (allDays) {
+                allDays.forEach((value, key) => {
+                    if (value >= 7.5 ) {
+                        goodDays.add(key)
+                    } else if (value < 7) {
+                        badDays.add(key)
+                    }
+                });
+            }
+            genreMap.set(genre, {
+                goodDays: goodDays,//JSON.stringify(Array.from(goodDays)),
+                badDays: badDays,//JSON.stringify(Array.from(badDays)),
+            })
+        });
+        output.set(person, genreMap);
+    });
+    return output;
+}
+
+/*Output:
+    Map {
+        genre: {
+            day: rating,
+        },
+        ...
+    }
+*/
+function getAveragesbyGendre(gendreRatingsMap) {
+    let withRatingAverages = new Map();
+    gendreRatingsMap.forEach((days, genre) => {
+        let tempMap = new Map();
+        days.forEach((dayInfo, day) => {
+            const averageRating = getAverage(dayInfo.get("ratings"));
+
+            tempMap.set(day, averageRating)
+        })
+        withRatingAverages.set(genre, tempMap)
+    })
+    return withRatingAverages;
+}
+
+/* Outpus:
+    {
+        genre: {
+            day:  {
+                ratings: [9,10,7,6]
+            }
+        },
+        ...
+    }
+*/
 function getShowsByGenreAndDay(shows) {
     let showsByGenre = new Map();
     for (let i = 0; i < shows.length; i++) {
@@ -91,50 +176,7 @@ function getShowsByGenreAndDay(shows) {
 }
 
 
-function getAveragesbyGendre(gendreRatingsMap) {
-    let withRatingAverages = new Map();
-    gendreRatingsMap.forEach((days, genre) => {
-        let tempMap = new Map();
-        days.forEach((dayInfo, day) => {
-            const averageRating = getAverage(dayInfo.get("ratings"));
 
-            tempMap.set(day, averageRating)
-        })
-        withRatingAverages.set(genre, tempMap)
-    })
-    return withRatingAverages;
-}
-
-
-function getDaysFor(people, shows) {
-    const output = new Map();
-    const showsByGenreAndDay = getAveragesbyGendre(getShowsByGenreAndDay(shows));
-    Object.keys(people).forEach(person => {
-        const personsgenres = people[person];
-        let genreMap = new Map();
-        // let genreMap = {};
-        personsgenres.forEach(genre => {
-            let goodDays = new Set();
-            let badDays = new Set();
-            const allDays = showsByGenreAndDay.get(genre)
-            if (allDays) {
-                allDays.forEach((value, key) => {
-                    if (value >= 7.5 ) {
-                        goodDays.add(key)
-                    } else if (value < 7) {
-                        badDays.add(key)
-                    }
-                });
-            }
-            genreMap.set(genre, {
-                goodDays: goodDays,//JSON.stringify(Array.from(goodDays)),
-                badDays: badDays,//JSON.stringify(Array.from(badDays)),
-            })
-        });
-        output.set(person, genreMap);
-    });
-    return output;
-}
 
 function mostPeopleNearTV(peopleDays) {
     let days = new Map();
@@ -167,7 +209,8 @@ function mostPeopleNearTV(peopleDays) {
 
 
 dataGetter().then(shows => {
-    console.log("daysWithAverageRating", getDaysWithAverageRating(getDaysWithRatings(shows)));
-    console.log(getDaysFor(people, shows));
-    console.log("people on TV at: ", mostPeopleNearTV(getDaysFor(people, shows)))
+    console.log("daysWithAverageRating: ", getDaysWithAverageRating(getDaysWithRatings(shows)));
+    const bestDaysForEachPerson = getDaysFor(people, shows);
+    console.log("bestDaysForEachPerson: ", bestDaysForEachPerson);
+    console.log("people on TV at: ", mostPeopleNearTV(bestDaysForEachPerson))
 })
