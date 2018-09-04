@@ -76,11 +76,13 @@ const people = {
 /* Output:
     Map {
         'Maksim' => Map {
-        'Drama' => { goodDays: [Set], badDays: Set {} },
-        'Comedy' => { goodDays: [Set], badDays: Set {} } },
+            'Drama' => { goodDays: [Set], badDays: Set {} },
+            'Comedy' => { goodDays: [Set], badDays: Set {} } 
+        },
         'Viktorija' => Map {
-        'Drama' => { goodDays: [Set], badDays: Set {} },
-        'Music' => { goodDays: Set {}, badDays: [Set] } } 
+            'Drama' => { goodDays: [Set], badDays: Set {} },
+            'Music' => { goodDays: Set {}, badDays: [Set] }
+        } 
     }
 */
 function getDaysFor(people, shows) {
@@ -177,34 +179,88 @@ function getShowsByGenreAndDay(shows) {
 
 
 
-
+/* Input:
+    Map {
+        'Maksim' => Map {
+            'Drama' => { goodDays: [Set], badDays: Set {} },
+            'Comedy' => { goodDays: [Set], badDays: Set {} } 
+        },
+        'Viktorija' => Map {
+            'Drama' => { goodDays: [Set], badDays: Set {} },
+            'Music' => { goodDays: Set {}, badDays: [Set] }
+        } 
+    }
+*/
 function mostPeopleNearTV(peopleDays) {
-    let days = new Map();
+    const daysPeople = peopleDuringTheDays(peopleDays);
+    console.log(daysPeople)
+    const mostPopularDay = getMostPopularDay(daysPeople);
+    return mostPopularDay;
+}
+
+/* Input:
+    Map {
+        'Maksim' => Map {
+            'Drama' => { goodDays: [Set], badDays: Set {} },
+            'Comedy' => { goodDays: [Set], badDays: Set {} } 
+        },
+        'Viktorija' => Map {
+            'Drama' => { goodDays: [Set], badDays: Set {} },
+            'Music' => { goodDays: Set {}, badDays: [Set] }
+        } 
+    }
+    
+    Output: 
+    Map {
+        'Tuesday' => 2,
+        'Friday' => 2,
+        'Monday' => 2,
+        'Sunday' => 2,
+        'Wednesday' => 2,
+        'Saturday' => 3 
+    }
+*/
+function peopleDuringTheDays(peopleDays) {
+    let daysPeople = new Map();
     peopleDays.forEach((genres, personsName) => {
-        genres.forEach((value, genre) => {
-            value.goodDays.forEach(day => {
-                let numberOfPeople = days.get(day);
-                if (numberOfPeople) {
-                    days.set(day, numberOfPeople + 1)
+        genres.forEach((goodBadDays, genre) => {
+            goodBadDays.goodDays.forEach(day => {
+                let peopleOnThatDay = daysPeople.get(day);
+                if (peopleOnThatDay) {
+                    daysPeople.set(day, peopleOnThatDay + 1)
                 } else {
-                    days.set(day, 1)
+                    daysPeople.set(day, 1)
                 }
             });
         })
     });
+    return daysPeople;
+}
 
-    //TODO fix
-    let bestDayInfo = {};
-    days.forEach((occurances, day) => {
-        console.log("key", key)
-        console.log("value", value)
-        if (Object.keys(bestDayInfo).length === 0 || bestDayInfo[day] < occurances) {
-            bestDayInfo[day] = occurances;
-        }
-    })
-    const mostBusyDay = Object.keys(bestDayInfo);
+/*
+Input:
+    Map {
+        'Tuesday' => 2,
+        'Friday' => 2,
+        'Monday' => 2,
+        'Sunday' => 2,
+        'Wednesday' => 2,
+        'Saturday' => 3 
+    }
+    Output: 
+        string
+*/
+function getMostPopularDay(daysPeople) {
+    let output = { bestDayInfo: {} };
+    daysPeople.forEach((people, day) => {
+        const currentBestNumber = output.bestDayInfo.numberOfPeople;
+        if (currentBestNumber === undefined || currentBestNumber && currentBestNumber < people) {
+            output.bestDayInfo.day = day;
+            output.bestDayInfo.numberOfPeople = people
+        } 
+    });
 
-    return mostBusyDay;
+    return output.bestDayInfo.day;
 }
 
 
@@ -213,4 +269,4 @@ dataGetter().then(shows => {
     const bestDaysForEachPerson = getDaysFor(people, shows);
     console.log("bestDaysForEachPerson: ", bestDaysForEachPerson);
     console.log("people on TV at: ", mostPeopleNearTV(bestDaysForEachPerson))
-})
+});
