@@ -1,6 +1,6 @@
 let fetch = require("isomorphic-fetch");
 
-
+//no longer used (alternative to Promise.all)
 async function dataGetter() {
     let allData = [];
     let promises = [];
@@ -300,17 +300,32 @@ function sortByRating(genresWithRatings) {
     });
 }
 
-dataGetter().then(shows => {
-    const daysWithRatings = getDaysWithRatings(shows);
-    console.log("Days with average film ratings: ", calculateAverageRatings(daysWithRatings));
+function getPromises() {
+    let promises = [];
+    for (let i = 0; i <= 200; i++) {
+        promises.push((fetch('http://api.tvmaze.com/shows?page=' + i).then(data => data.json())))
+    }
+    return promises;
+}
 
-    const bestDaysForEachPerson = getDaysFor(people, shows);
-    console.log("Best day to watch TV for each person: ", bestDaysForEachPerson);
-    console.log("Most people should be watching TV on: ", mostPeopleNearTV(bestDaysForEachPerson));
-
-    const genresWithRatings = getGenresWithRatings(shows);
-    console.log("Genres sorted by rating", sortByRating(genresWithRatings));
-    const genresSortedByRating = sortByRating(genresWithRatings)
-    console.log("5 categories with worst ratings: ", genresSortedByRating.slice(0,5))
-    console.log("5 categories with best ratings: ", genresSortedByRating.slice(-5))
-});
+Promise.all(getPromises())
+    .then((data) => {
+        let shows = [];
+        data.forEach(pageData => {
+            shows.push(...pageData)
+        });
+        return shows;
+    }).then(shows => {
+        const daysWithRatings = getDaysWithRatings(shows);
+        console.log("Days with average film ratings: ", calculateAverageRatings(daysWithRatings));
+    
+        const bestDaysForEachPerson = getDaysFor(people, shows);
+        console.log("Best day to watch TV for each person: ", bestDaysForEachPerson);
+        console.log("Most people should be watching TV on: ", mostPeopleNearTV(bestDaysForEachPerson));
+    
+        const genresWithRatings = getGenresWithRatings(shows);
+        console.log("Genres sorted by rating", sortByRating(genresWithRatings));
+        const genresSortedByRating = sortByRating(genresWithRatings)
+        console.log("5 categories with worst ratings: ", genresSortedByRating.slice(0,5))
+        console.log("5 categories with best ratings: ", genresSortedByRating.slice(-5))
+    });
